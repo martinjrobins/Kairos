@@ -70,14 +70,18 @@ public:
 		this->clear();
 	}
 	void set_compartment_index(const int i) {
-		for (auto& rc : *this) {
-			rc.compartment_index = i;
+		//for (auto& rc : *this) {
+		for (std::vector<ReactionComponent>::iterator rc=this->begin();rc!=this->end();rc++) {
+			//rc.compartment_index = i;
+			rc->compartment_index = i;
 		}
 	}
 	int get_num_reactants() {
 		int num_reactants = 0;
-		for (auto& rc : *this) {
-			num_reactants += rc.multiplier;
+		//for (auto& rc : *this) {
+		for (std::vector<ReactionComponent>::iterator rc=this->begin();rc!=this->end();rc++) {
+			//num_reactants += rc.multiplier;
+			num_reactants += rc->multiplier;
 		}
 		return num_reactants;
 	}
@@ -85,12 +89,16 @@ public:
 
 struct ReactionEquation {
 	void react() {
-		for (auto& rc : lhs) {
-			rc.species->copy_numbers[rc.compartment_index] -= rc.multiplier;
-			ASSERT(rc.species->copy_numbers[rc.compartment_index] < 0, "After reaction, copy number in compartment is less than zero!!!");
+		//for (auto& rc : lhs) {
+		for (std::vector<ReactionComponent>::iterator rc=lhs.begin();rc!=lhs.end();rc++) {
+			//rc.species->copy_numbers[rc.compartment_index] -= rc.multiplier;
+			//ASSERT(rc.species->copy_numbers[rc.compartment_index] < 0, "After reaction, copy number in compartment is less than zero!!!");
+			rc->species->copy_numbers[rc->compartment_index] -= rc->multiplier;
+			ASSERT(rc->species->copy_numbers[rc->compartment_index] < 0, "After reaction, copy number in compartment is less than zero!!!");
 		}
-		for (auto& rc : rhs) {
-			rc.species->copy_numbers[rc.compartment_index] += rc.multiplier;
+		//for (auto& rc : rhs) {
+		for (std::vector<ReactionComponent>::iterator rc=rhs.begin();rc!=rhs.end();rc++) {
+			rc->species->copy_numbers[rc->compartment_index] += rc->multiplier;
 		}
 	}
 

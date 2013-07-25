@@ -1,21 +1,13 @@
-file(GLOB SRC_FILES "*.cpp")
-file(GLOB HEADER_FILES "*.h")
+file(GLOB Kairos_SOURCES "*.cpp")
+file(GLOB Kairos_HEADERS "*.h")
+include_directories(${Kairos_INCLUDE_DIRECTORIES})
+message(STATUS ${Kairos_INCLUDE_DIRECTORIES})
 
-if(NOT HAVE_VTK)
-	add_definitions(-DHAVE_VTK)
-	find_package(VTK REQUIRED)
-endif()
+add_library(Kairos SHARED ${Kairos_SOURCES} "../smoldyn/rxnparam.c")
+TARGET_LINK_LIBRARIES(Kairos ${VTK_LIBRARIES})
 
-FIND_PACKAGE(Boost REQUIRED)
-
-include_directories(${VTK_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -std=c++0x")
-
-if(OPTION_STATIC)
-	add_library(nsv STATIC ${SRC_FILES} ${HEADER_FILES})
-else()
-	add_library(nsv SHARED ${SRC_FILES} ${HEADER_FILES})
-endif(OPTION_STATIC)
-
-TARGET_LINK_LIBRARIES(nsv ${VTK_LIBRARIES})
+install (TARGETS Kairos DESTINATION lib)
+install (FILES ${Kairos_HEADERS} DESTINATION include)
+install (FILES ../smoldyn/rxnparam.h DESTINATION include)
+install (DIRECTORY ${Kairos_SOURCE_DIR}/eigen3/ DESTINATION include)
 

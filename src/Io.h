@@ -28,7 +28,6 @@
 #include <string>
 #include <vtkUnstructuredGrid.h>
 #include <vtkSmartPointer.h>
-#include <initializer_list>
 #include "StructuredGrid.h"
 #include "Species.h"
 

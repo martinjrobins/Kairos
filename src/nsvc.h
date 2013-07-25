@@ -25,27 +25,35 @@
 #ifndef NSVC_H_
 #define NSVC_H_
 
-struct portstruct;
 
-#ifdef __cplusplus
-	#ifdef HAVE_VTK
+
+
+
+//#ifdef __cplusplus
+
+#ifdef NSVC_CPP
+	//#ifdef HAVE_VTK
 		#include <vtkUnstructuredGrid.h>
 		#include <string>
 		#include "Kairos.h"
 		using Kairos::NextSubvolumeMethod;
-	#else
-		typedef struct vtkUnstructuredGrid vtkUnstructuredGrid;
-		typedef struct NextSubvolumeMethod NextSubvolumeMethod;
-	#endif
+	//#else
+	//	typedef struct vtkUnstructuredGrid vtkUnstructuredGrid;
+	//	typedef struct NextSubvolumeMethod NextSubvolumeMethod;
+	//#endif
 #else
 	typedef struct vtkUnstructuredGrid vtkUnstructuredGrid;
 	typedef struct NextSubvolumeMethod NextSubvolumeMethod;
 #endif
 
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct portstruct;
+struct rxnstruct;
 
 extern void nsv_init();
 
@@ -54,10 +62,15 @@ extern void nsv_delete(NextSubvolumeMethod* nsv);
 extern void nsv_print(NextSubvolumeMethod* nsv, char *buffer);
 extern void nsv_add_interface(NextSubvolumeMethod* nsv,double dt, double *start,double *end,double *norm,int dim);
 extern void nsv_add_species(NextSubvolumeMethod* nsv,int id,double D);
-extern void nsv_add_reaction(NextSubvolumeMethod* nsv,double rate,
-						int nreactants,int *reactant_ids,
-						int nproducts,int *product_ids);
+//extern void nsv_add_reaction(NextSubvolumeMethod* nsv,double rate,
+//						int nreactants,int *reactant_ids,
+//						int nproducts,int *product_ids);
+extern void nsv_add_reaction(NextSubvolumeMethod* nsv,rxnstruct *reaction);
 extern void nsv_integrate(NextSubvolumeMethod* nsv,double dt, portstruct *port);
+extern void nsv_molcountspace(NextSubvolumeMethod* nsv,int id, double *low, double *high, int dim, int nbins, int axis, int *ret_array);
+extern void nsv_molcount(NextSubvolumeMethod* nsv, int *ret_array);
+extern void nsv_add_mol(NextSubvolumeMethod* nsv,int id, double* pos, int dim);
+
 extern vtkUnstructuredGrid* nsv_get_grid(NextSubvolumeMethod* nsv);
 
 #ifdef __cplusplus

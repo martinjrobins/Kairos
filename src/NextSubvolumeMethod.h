@@ -127,7 +127,7 @@ public:
 	void reset();
 	void list_reactions();
 	template<typename T>
-	void set_interface(const T& geometry, const double dt) {
+	void set_interface(const T& geometry, const double dt, const bool corrected) {
 		std::vector<int> to_indicies,from_indicies;
 		T to_geometry = geometry;
 		to_geometry += 0.5*subvolumes.get_cell_size()[T::dim];
@@ -136,7 +136,7 @@ public:
 		from_geometry += 0.5*subvolumes.get_cell_size()[T::dim];
 		subvolumes.get_slice(from_geometry,from_indicies);
 		subvolumes.get_slice(to_geometry,to_indicies);
-		set_interface_reactions(from_indicies,to_indicies,dt);
+		set_interface_reactions(from_indicies,to_indicies,dt,corrected);
 	}
 
 	template<typename T>
@@ -148,11 +148,29 @@ public:
 		subvolumes.get_slice(geometry,from_indicies);
 		unset_interface_reactions(from_indicies,to_indicies);
 	}
-	void set_interface_reactions(std::vector<int>& from_indicies, std::vector<int>& to_indicies, const double dt);
+	void set_interface_reactions(std::vector<int>& from_indicies, std::vector<int>& to_indicies, const double dt, const bool corrected);
 	void unset_interface_reactions(std::vector<int>& from_indicies, std::vector<int>& to_indicies);
 	void add_diffusion(Species &s);
 	void add_diffusion(Species &s, const double rate);
 	void add_reaction(const double rate, ReactionEquation eq);
+	template<typename T>
+	void add_reaction_on(const double rate, ReactionEquation eq, const T& geometry) {
+		std::vector<int> indicies;
+		subvolumes.get_slice(geometry,indicies);
+		for (unsigned int i = 0; i < indicies.size(); ++i) {
+			add_reaction_to_compartment(rate,eq,i);
+		}
+	}
+
+	template<typename T>
+	void add_reaction_in(const double rate, ReactionEquation eq, const T& geometry) {
+		std::vector<int> indicies;
+		subvolumes.get_region(geometry,indicies);
+		for (unsigned int i = 0; i < indicies.size(); ++i) {
+			add_reaction_to_compartment(rate,eq,i);
+		}
+	}
+
 	template<typename T>
 	void add_diffusion_between(Species &s, const double rate, T& geometry_from, T& geometry_to) {
 		std::vector<int> from,to;
@@ -180,8 +198,10 @@ public:
 //		}
 //	}
 	void clear_reactions(std::vector<int>& cell_indicies) {
-		for (int i : cell_indicies) {
-			subvolume_reactions[i].clear();
+		//for (int i : cell_indicies) {
+		for (std::vector<int>::iterator i=cell_indicies.begin();i!=cell_indicies.end();i++) {
+			//subvolume_reactions[i].clear();
+			subvolume_reactions[*i].clear();
 		}
 	}
 	Species* get_species(const int id);
@@ -196,8 +216,8 @@ public:
 	void operator()(const double dt);
 	StructuredGrid& get_grid() { return subvolumes; }
 	friend std::ostream& operator<< (std::ostream& out, NextSubvolumeMethod &b);
-private:
 	void add_reaction_to_compartment(const double rate, ReactionEquation eq, int i);
+private:
 	void react(ReactionEquation& r);
 	StructuredGrid& subvolumes;
 	PriorityHeap heap;

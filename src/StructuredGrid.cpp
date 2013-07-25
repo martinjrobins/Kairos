@@ -14,7 +14,7 @@ void StructuredGrid::reset_domain(const Vect3d& _low, const Vect3d& _high, const
 	low = _low;
 	num_cells_along_axes = ((high-low).cwiseQuotient(max_grid_size) + Vect3d(0.5,0.5,0.5)).cast<int>();
 	cell_size = (high-low).cwiseQuotient(num_cells_along_axes.cast<double>());
-	tolerance = cell_size.minCoeff()/1000.0;
+	tolerance = cell_size.minCoeff()/100000.0;
 	cell_volume = cell_size.prod();
 	//std::cout << "cell volume = " << cell_volume << " cell_size = " << cell_size<<std::endl;
 	inv_cell_size = Vect3d(1,1,1).cwiseQuotient(cell_size);
@@ -76,6 +76,10 @@ Vect3d StructuredGrid::get_random_point(const int i) const {
 }
 
 void StructuredGrid::get_overlap(const Vect3d& overlap_low, const Vect3d& overlap_high, std::vector<int>& indicies, std::vector<double>& volume) const {
+	indicies.clear();
+	volume.clear();
+	if ((overlap_low.array() >= high.array()).any()) return;
+	if ((overlap_high.array() <= low.array()).any()) return;
 	Vect3d snap_low = overlap_low + Vect3d(tolerance,tolerance,tolerance);
 	Vect3d snap_high = overlap_high - Vect3d(tolerance,tolerance,tolerance);
 	for (int i = 0; i < 3; ++i) {
@@ -83,15 +87,14 @@ void StructuredGrid::get_overlap(const Vect3d& overlap_low, const Vect3d& overla
 			snap_low[i] = low[i];
 		}
 		if (snap_high[i] > high[i]) {
-			snap_high[i] = high[i];
+			snap_high[i] = high[i]-tolerance;
 		}
 	}
 	Vect3i lowi,highi;
 	lowi = get_cell_index_vector(snap_low);
 	highi = get_cell_index_vector(snap_high);
 
-	indicies.clear();
-	volume.clear();
+
 	const double inv_volume = 1.0/cell_size.prod();
 	for (int i = lowi[0]; i <= highi[0]; ++i) {
 		for (int j = lowi[1]; j <= highi[1]; ++j) {
@@ -191,8 +194,8 @@ Rectangle StructuredGrid::get_face_between(const int i, const int j) const {
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else if (diff == num_cells_along_axes[2]) {
 		Vect3d lower_left = clow + Vect3d(0,cell_size[1],0);
-		Vect3d upper_left = clow + Vect3d(cell_size[0],cell_size[1],0);
-		Vect3d lower_right = clow + Vect3d(0,cell_size[1],cell_size[2]);
+		Vect3d lower_right = clow + Vect3d(cell_size[0],cell_size[1],0);
+		Vect3d upper_left= clow + Vect3d(0,cell_size[1],cell_size[2]);
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else if (diff == 1) {
 		Vect3d lower_left = clow + Vect3d(0,0,cell_size[2]);
@@ -200,19 +203,19 @@ Rectangle StructuredGrid::get_face_between(const int i, const int j) const {
 		Vect3d lower_right = clow + Vect3d(0,cell_size[1],cell_size[2]);
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else if (diff == -num_cells_along_yz) {
-		Vect3d lower_left = clow + Vect3d(cell_size[0],0,0);
-		Vect3d lower_right = clow + Vect3d(cell_size[0],cell_size[1],0);
-		Vect3d upper_left = clow + Vect3d(cell_size[0],0,cell_size[2]);
+		Vect3d lower_left = clow + Vect3d(0,0,0);
+		Vect3d lower_right = clow + Vect3d(0,cell_size[1],0);
+		Vect3d upper_left = clow + Vect3d(0,0,cell_size[2]);
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else if (diff == -num_cells_along_axes[2]) {
-		Vect3d lower_left = clow + Vect3d(0,cell_size[1],0);
-		Vect3d lower_right = clow + Vect3d(cell_size[0],cell_size[1],0);
-		Vect3d upper_left = clow + Vect3d(0,cell_size[1],cell_size[2]);
+		Vect3d lower_left = clow + Vect3d(0,0,0);
+		Vect3d upper_left = clow + Vect3d(cell_size[0],0,0);
+		Vect3d lower_right = clow + Vect3d(0,0,cell_size[2]);
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else if (diff == -1) {
-		Vect3d lower_left = clow + Vect3d(0,0,cell_size[2]);
-		Vect3d lower_right = clow + Vect3d(cell_size[0],0,cell_size[2]);
-		Vect3d upper_left = clow + Vect3d(0,cell_size[1],cell_size[2]);
+		Vect3d lower_left = clow + Vect3d(0,0,0);
+		Vect3d lower_right = clow + Vect3d(cell_size[0],0,0);
+		Vect3d upper_left = clow + Vect3d(0,cell_size[1],0);
 		return Rectangle(lower_left,upper_left,lower_right);
 	} else {
 		ERROR("cells are not adjacent");

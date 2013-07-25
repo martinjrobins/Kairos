@@ -36,7 +36,7 @@ public:
 };
 
 
-template<int DIM>
+template<unsigned int DIM>
 class AxisAlignedRectangle;
 
 static const int dim_map[][2] = {{1,2}, {0,2}, {0,1}};
@@ -135,7 +135,7 @@ typedef AxisAlignedPlane<2> zplane;
 
 
 
-template<int DIM>
+template<unsigned int DIM>
 class AxisAlignedRectangle: public AxisAlignedPlane<DIM> {
 public:
 	AxisAlignedRectangle(const Vect3d _low, const Vect3d _high, const int _normal):
@@ -208,6 +208,9 @@ public:
 		ret[dim_map[DIM][1]] = tri2();
 		return ret;
 	}
+
+	const Vect3d& get_low() const {return low;}
+	const Vect3d& get_high() const {return high;}
 
 private:
 	Vect3d low,high,normal_vector;

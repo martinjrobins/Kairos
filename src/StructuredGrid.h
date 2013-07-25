@@ -63,10 +63,16 @@ public:
 	Vect3d get_random_point(const int i) const;
 
 	template<unsigned int DIM>
-	void get_slice(const AxisAlignedPlane<DIM>& surface, std::vector<int>& indices) const;
+	void get_slice(const AxisAlignedRectangle<DIM>& surface, std::vector<int>& indices) const;
 
 	template<unsigned int DIM>
-	void get_slice(const AxisAlignedRectangle<DIM>& surface, std::vector<int>& indices) const;
+	void get_slice(const AxisAlignedPlane<DIM>& surface, std::vector<int>& indices) const;
+
+	template<typename T>
+	void get_slice(const T geometry, std::vector<int>& indices) const;
+
+	template<typename T>
+	void get_region(const T geometry, std::vector<int>& indices) const;
 
 	void get_overlap(const Vect3d& low, const Vect3d& high, std::vector<int>& indicies, std::vector<double>& volume) const;
 
@@ -87,6 +93,9 @@ public:
 	}
 	inline Vect3d get_cell_size() const {
 		return cell_size;
+	}
+	inline Vect3d get_domain_size() const {
+		return domain_size;
 	}
 	double get_tolerance() const {
 		return tolerance;
@@ -114,14 +123,14 @@ public:
 	}
 
 	inline bool is_in(const Vect3d& r) const {
-		return ((r.array() > low.array()).all()) && ((r.array() < high.array()).all());
+		return ((r.array() >= low.array()).all()) && ((r.array() < high.array()).all());
 	}
 	inline Vect3i get_cell_index_vector(const Vect3d &r) const {
-			ASSERT(((r.array() > low.array()).all()) && ((r.array() < high.array()).all()), "point "<<r<<" outside structured grid range!!!");
+			ASSERT(((r.array() >= low.array()).all()) && ((r.array() < high.array()).all()), "point "<<r<<" outside structured grid range!!!");
 			return ((r-low).cwiseProduct(inv_cell_size)).cast<int>();
 	}
 	inline int get_cell_index(const Vect3d &r) const {
-		ASSERT(((r.array() > low.array()).all()) && ((r.array() < high.array()).all()), "point "<<r<<" outside structured grid range!!!");
+		ASSERT(((r.array() >= low.array()).all()) && ((r.array() < high.array()).all()), "point "<<r<<" outside structured grid range!!!");
 		const Vect3i celli = ((r-low).cwiseProduct(inv_cell_size)).cast<int>();
 		return vect_to_index(celli);
 	}
@@ -148,10 +157,10 @@ private:
 	}
 	Vect3i index_to_vect(const int i) const {
 		Vect3i ret;
-		ret[2] = i%num_cells_along_axes[1];
-		const int i2 = floor(i/num_cells_along_axes[1]);
-		ret[1] = i2%num_cells_along_axes[2];
-		ret[0] = floor(i2/num_cells_along_axes[2]);
+		ret[2] = i%num_cells_along_axes[2];
+		const int i2 = floor(i/num_cells_along_axes[2]);
+		ret[1] = i2%num_cells_along_axes[1];
+		ret[0] = floor(i2/num_cells_along_axes[1]);
 		return ret;
 	}
 
