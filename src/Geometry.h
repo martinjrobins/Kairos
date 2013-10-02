@@ -60,6 +60,24 @@ public:
 			normal(arg.normal)
 	{}
 
+	bool lineXsurface(const Vect3d& p1, const Vect3d& p2, Vect3d *intersect_point=NULL, Vect3d *intersect_normal=NULL) const {
+		if (((p2[DIM]>=coord)&&(p1[coord]<coord))||((p2[DIM]<coord)&&(p1[coord]>=coord))) {
+			if (intersect_point != NULL) {
+				intersect_point[DIM] = coord;
+				intersect_point[dim_map[DIM][0]] = 0.5*(p1[dim_map[DIM][0]] + p2[dim_map[DIM][0]]);
+				intersect_point[dim_map[DIM][1]] = 0.5*(p1[dim_map[DIM][1]] + p2[dim_map[DIM][1]]);
+			}
+			if (intersect_normal != NULL) {
+				intersect_normal[DIM] = 1.0;
+				intersect_normal[dim_map[DIM][0]] = 0.0;
+				intersect_normal[dim_map[DIM][1]] = 0.0;
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	bool is_between(const AxisAlignedPlane<DIM>& plane1, const AxisAlignedPlane<DIM>& plane2) const {
 		if (plane1.coord < plane2.coord) {
 			return ((coord > plane1.coord) && (coord < plane2.coord));
@@ -67,16 +85,7 @@ public:
 			return ((coord < plane1.coord) && (coord > plane2.coord));
 		}
 	}
-	inline bool at_boundary(const Vect3d& r) const {
-		return normal*(r[DIM]-coord) < 0;
-	}
-	inline bool at_boundary(const Vect3d& r, Vect3d& shortest) const {
-		//shortest = Vect3d::Zero();
-		shortest[dim_map[DIM][0]] = 0;
-		shortest[dim_map[DIM][1]] = 0;
-		shortest[DIM] = coord-r[DIM];
-		return normal*(-shortest[DIM]) < 0;
-	}
+
 
 	const Vect3d shortest_vector_to_boundary(const Vect3d& r) const {
 	   Vect3d shortest = Vect3d::Zero();
@@ -185,6 +194,30 @@ public:
 				0.5*(arg.low[dim_map[DIM][1]] + arg.high[dim_map[DIM][1]]),
 				arg.high[dim_map[DIM][1]] ));
 	}
+
+	bool lineXsurface(const Vect3d& p1, const Vect3d& p2, Vect3d *intersect_point=NULL, Vect3d *intersect_normal=NULL) const {
+		if (((p2[DIM]>=coord)&&(p1[coord]<coord))||((p2[DIM]<coord)&&(p1[coord]>=coord))) {
+			const double intersect0 = 0.5*(p1[dim_map[DIM][0]] + p2[dim_map[DIM][0]]);
+			if ((intersect0 >= low[dim_map[DIM][0]]) && (intersect0 < high[dim_map[DIM][0]])) {
+				const double intersect1 = 0.5*(p1[dim_map[DIM][1]] + p2[dim_map[DIM][1]]);
+				if ((intersect1 >= low[dim_map[DIM][1]]) && (intersect1 < high[dim_map[DIM][1]])) {
+					if (intersect_point != NULL) {
+						intersect_point[DIM] = coord;
+						intersect_point[dim_map[DIM][0]] = intersect0;
+						intersect_point[dim_map[DIM][1]] = intersect1;
+					}
+					if (intersect_normal != NULL) {
+						intersect_normal[DIM] = 1.0;
+						intersect_normal[dim_map[DIM][0]] = 0.0;
+						intersect_normal[dim_map[DIM][1]] = 0.0;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	void get_random_point_and_normal(Vect3d& p, Vect3d& n) {
 	   p = get_random_point();
 	   n = normal_vector;
@@ -239,6 +272,13 @@ public:
 		normal = l.cross(r);
 		normal.normalize();
 	}
+
+	bool lineXsurface(const Vect3d& p1, const Vect3d& p2, Vect3d *intersect_point=NULL, Vect3d *intersect_normal=NULL) const {
+
+		return false;
+	}
+
+
 	void get_random_point_and_normal(Vect3d& p, Vect3d& n) {
 		p = get_random_point();
 		n = normal;

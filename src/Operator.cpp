@@ -13,7 +13,6 @@
 
 namespace Kairos {
 //boost::timer::cpu_timer Operator::global_timer;
-double Operator::total_global_time = 0;
 
 Operator::Operator() {
 //	timer.stop();
@@ -35,30 +34,53 @@ int Operator::get_species_index(Species& s) {
 	return -1;
 }
 
-void Operator::add_species(Species& s) {
+bool Operator::add_species(Species& s) {
+	for (auto i: all_species) {
+		if (&s == i) {
+			return false;
+		}
+	}
+	add_species_execute(s);
 	all_species.push_back(&s);
+	return true;
 }
+
 
 void Operator::resume_timer() {
 //	timer.resume();
 //	global_timer.resume();
-	timer.restart();
+	timer.start();
 }
 
 void Operator::operator ()(const double dt) {
-   time += dt;
+	Operator::resume_timer();
+	LOG(2, "Starting Operator: " << *this);
+
+	integrate(dt);
+
+	time += dt;
+	LOG(2, "Stopping Operator: " << *this);
+	Operator::stop_timer();
+}
+
+double Operator::integrate_for_time(const double itime, const double dt) {
+	const int timesteps = itime/dt;
+	for (int i = 0; i < timesteps; ++i) {
+		(*this)(dt);
+	}
+	return time;
 }
 
 void Operator::reset() {
 	time = 0;
+	reset_execute();
 }
 
 void Operator::stop_timer() {
-	//timer.stop();
+	timer.stop();
 	//global_timer.stop();
-	const double time = timer.elapsed();
+	const double time = (timer.elapsed().user + timer.elapsed().user)/double(1000000000);
 	total_time += time;
-	total_global_time += time;
 }
 
 
@@ -70,17 +92,18 @@ const std::string to_string(const T& data)
    return conv.str();
 }
 
-std::string Operator::get_time() {
+std::string Operator::get_time_string() const {
 	//return timer.format();
-	return "Time to execute: " + to_string(total_time) + " s (" + get_time_percentage() + ")";
+	return "Time to execute: " + to_string(total_time) + " s";
 }
 
-std::string Operator::get_global_time() {
+/*
+std::string Operator::get_global_time() const {
 	//return global_timer.format();
 	return "Time to execute all Operators: " + to_string(total_global_time) + " s";
 }
 
-std::string Operator::get_time_percentage() {
+std::string Operator::get_time_percentage() const {
 //	boost::timer::cpu_times percent;
 //	boost::timer::cpu_times this_time = timer.elapsed();
 //	boost::timer::cpu_times total = global_timer.elapsed();
@@ -92,6 +115,43 @@ std::string Operator::get_time_percentage() {
 	const double percent = 100*total_time/total_global_time;
 	return to_string(percent) + "%";
 }
+*/
+void Operator::add_species_execute(Species &s) {
+
+}
+void Operator::reset_execute() {
+
+}
+void Operator::integrate(const double dt) {
+
+}
+void Operator::print(std::ostream& out) const {
+	out << "Default Operator";
+}
+
+
+
+//OperatorList operator+(Operator& arg1, Operator& arg2) {
+//	OperatorList result;
+//	result += arg1;
+//	result += arg2;
+//	return result;
+//}
+//OperatorList operator+(Operator& arg1, OperatorList& arg2) {
+//	OperatorList result = arg2;
+//	result += arg1;
+//	return arg2;
+//}
+//OperatorList operator+(OperatorList& arg1, Operator& arg2) {
+//	OperatorList result = arg1;
+//	result += arg2;
+//	return arg1;
+//}
+//OperatorList operator+(OperatorList& arg1, OperatorList& arg2) {
+//	OperatorList result = arg1;
+//	arg1 += arg2;
+//	return arg1;
+//}
 
 
 }

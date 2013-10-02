@@ -179,24 +179,7 @@ public:
 		add_diffusion_between(s,rate,from,to);
 	}
 	void add_diffusion_between(Species &s, const double rate, std::vector<int>& from, std::vector<int>& to);
-//	template<typename T>
-//	void add_reaction(const double rate, ReactionEquation eq, T geometry) {
-//		const int n = subvolumes.size();
-//		for (int i = 0; i < n; ++i) {
-//			if (subvolumes.geometry_intersects_cell(i, geometry)) {
-//				add_reaction_to_compartment(rate, eq, i);
-//			}
-//		}
-//	}
-//	template<typename T>
-//	void clear_reactions(T geometry) {
-//		const int n = subvolumes.size();
-//		for (int i = 0; i < n; ++i) {
-//			if (subvolumes.geometry_intersects_cell(i, geometry)) {
-//				subvolume_reactions[i].clear();
-//			}
-//		}
-//	}
+
 	void clear_reactions(std::vector<int>& cell_indicies) {
 		//for (int i : cell_indicies) {
 		for (std::vector<int>::iterator i=cell_indicies.begin();i!=cell_indicies.end();i++) {
@@ -213,10 +196,15 @@ public:
 		return heap.top().time_at_next_reaction;
 	}
 	double get_time() {return time;}
-	void operator()(const double dt);
 	StructuredGrid& get_grid() { return subvolumes; }
-	friend std::ostream& operator<< (std::ostream& out, NextSubvolumeMethod &b);
 	void add_reaction_to_compartment(const double rate, ReactionEquation eq, int i);
+
+protected:
+	virtual void reset_execute();
+	virtual void integrate(const double dt);
+	virtual void print(std::ostream& out) const {
+		out << "\tNext Subvolume Method";
+	}
 private:
 	void react(ReactionEquation& r);
 	StructuredGrid& subvolumes;
@@ -229,7 +217,5 @@ private:
 	std::vector<HeapHandle> subvolume_heap_handles;
 };
 
-std::ostream& operator<< (std::ostream& out, NextSubvolumeMethod &b);
-}
 
 #endif /* NEXTSUBVOLUMEMETHD_H */
