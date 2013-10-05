@@ -187,8 +187,7 @@ public:
 			subvolume_reactions[*i].clear();
 		}
 	}
-	Species* get_species(const int id);
-	std::vector<Species*>& get_diffusing_species() {return diffusing_species;}
+
 	void reset_all_priorities();
 	void reset_priority(const int i);
 	void recalc_priority(const int i);
@@ -202,9 +201,7 @@ public:
 protected:
 	virtual void reset_execute();
 	virtual void integrate(const double dt);
-	virtual void print(std::ostream& out) const {
-		out << "\tNext Subvolume Method";
-	}
+	virtual void print(std::ostream& out);
 private:
 	void react(ReactionEquation& r);
 	StructuredGrid& subvolumes;

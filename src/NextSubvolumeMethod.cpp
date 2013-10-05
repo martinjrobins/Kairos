@@ -179,7 +179,6 @@ double ReactionList::recalculate_propensities() {
 	return inv_total_propensity;
 }
 
-static const double LONGEST_TIME = 100000;
 
 
 NextSubvolumeMethod::NextSubvolumeMethod(StructuredGrid& subvolumes):
@@ -224,21 +223,9 @@ void  NextSubvolumeMethod::add_reaction_to_compartment(const double rate, Reacti
 	}
 }
 
-Species* NextSubvolumeMethod::get_species(const int id) {
-	for (unsigned int i = 0; i < diffusing_species.size(); ++i) {
-		if (diffusing_species[i]->id==id) {
-			return diffusing_species[i];
-		}
-	}
-	return NULL;
-}
 
 void NextSubvolumeMethod::add_diffusion(Species &s, const double rate) {
-	if (get_species(s.id) == NULL) {
-		diffusing_species.push_back(&s);
-	} else {
-		return;
-	}
+	this->add_species(s);
 
 	const int n = subvolumes.size();
 	for (int i = 0; i < n; ++i) {
@@ -259,11 +246,7 @@ void NextSubvolumeMethod::add_diffusion(Species &s, const double rate) {
 }
 
 void NextSubvolumeMethod::add_diffusion(Species &s) {
-	if (get_species(s.id) == NULL) {
-		diffusing_species.push_back(&s);
-	} else {
-		return;
-	}
+	this->add_species(s);
 
 	const int n = subvolumes.size();
 		for (int i = 0; i < n; ++i) {
@@ -503,19 +486,18 @@ void NextSubvolumeMethod::react(ReactionEquation& eq) {
 }
 
 
-std::ostream& operator<< (std::ostream& out, NextSubvolumeMethod &b) {
+void NextSubvolumeMethod::print(std::ostream& out) {
 	out << "\tNext Subvolume Method:"<<std::endl;
 	out << "\t\tStructured Grid:"<<std::endl;
-	out << "\t\t\tlow = "<<b.get_grid().get_low() << " high = "<<b.get_grid().get_high()<<std::endl;
-	out << "\t\t\tcompartment sizes = "<<b.get_grid().get_cell_size() << std::endl;
+	out << "\t\t\tlow = "<<get_grid().get_low() << " high = "<<get_grid().get_high()<<std::endl;
+	out << "\t\t\tcompartment sizes = "<<get_grid().get_cell_size() << std::endl;
 	out << "\t\tDiffusing Species:"<<std::endl;
-	for (unsigned int i = 0; i < b.get_diffusing_species().size(); ++i) {
-		Species *s = b.get_diffusing_species()[i];
+	for (unsigned int i = 0; i < get_species().size(); ++i) {
+		Species *s = get_species()[i];
 		out <<"\t\t\tSpecies "<<s->id<<" (D = "<<s->D<<") has "<<
 					std::accumulate(s->copy_numbers.begin(),s->copy_numbers.end(),0)<<
 					" particles in compartments and "<<s->particles.size()<<" off-lattice particles"<<std::endl;
 	}
-	return out;
 }
 
 
